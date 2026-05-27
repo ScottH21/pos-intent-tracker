@@ -192,139 +192,147 @@
 
   /* MOBILE RESPONSIVE */
   @media (max-width: 768px) {
-    body { padding: 0; }
-    .header { flex-direction: column; gap: 6px; padding: 14px 16px; }
+    body { padding: 0; margin: 0; overflow-x: hidden; }
+    .main { padding: 0; }
+    
+    /* Header - compact */
+    .header { flex-direction: column; gap: 8px; padding: 16px; }
     .header-left { width: 100%; }
-    .header-right { width: 100%; justify-content: flex-start; gap: 6px; flex-wrap: wrap; }
-    .header-right .btn { font-size: 12px; padding: 8px 12px; flex: 1; text-align: center; border-radius: 8px; }
+    .header-left h1 { font-size: 16px !important; }
+    .header-left p { font-size: 11px; }
+    .header-right { width: 100%; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .header-right .btn { font-size: 12px; padding: 10px 8px; text-align: center; border-radius: 10px; }
+    .header-right .badge { display: none; }
     
-    .territory-bar { flex-direction: column; gap: 6px; padding: 12px 16px; }
-    .territory-meta { flex-wrap: wrap; gap: 8px; }
-    .territory-meta span { font-size: 12px; }
+    /* Territory bar */
+    .territory-bar { flex-direction: column; gap: 8px; padding: 14px 16px; }
+    .territory-meta { flex-wrap: wrap; gap: 10px; }
+    .territory-meta span { font-size: 13px; }
     
-    .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px 16px; }
-    .stat-card { padding: 12px; border-radius: 10px; }
-    .stat-card h3 { font-size: 20px; }
+    /* Stats - 2x2 grid */
+    .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; padding: 14px 16px; }
+    .stat-card { padding: 14px; border-radius: 12px; }
+    .stat-card h3 { font-size: 22px; }
+    .stat-card p { font-size: 11px; }
     
+    /* Filters - stacked, big touch targets */
     .filters-panel { 
       flex-direction: column; 
       gap: 10px; 
-      padding: 12px 16px; 
+      padding: 14px 16px; 
       align-items: stretch;
     }
     .filter-input, .filter-input-sm { 
-      width: 100%; 
-      min-width: unset; 
-      padding: 12px; 
-      font-size: 14px;
-      border-radius: 8px;
+      width: 100% !important; 
+      min-width: unset !important; 
+      padding: 14px 12px; 
+      font-size: 16px;
+      border-radius: 10px;
+      box-sizing: border-box;
     }
     select.filter-input-sm {
-      padding: 12px;
-      font-size: 14px;
-      border-radius: 8px;
+      padding: 14px 12px;
+      font-size: 16px;
+      border-radius: 10px;
       appearance: auto;
+      width: 100% !important;
     }
     
-    /* Mobile card layout */
-    .data-table { border-collapse: separate; border-spacing: 0; }
+    /* CARD LAYOUT - clean, spacious */
+    .data-table { border-collapse: separate; border-spacing: 0; width: 100%; }
     .data-table thead { display: none; }
-    .data-table tbody { display: flex; flex-direction: column; gap: 10px; padding: 8px 12px; }
+    .data-table tbody { display: flex; flex-direction: column; gap: 12px; padding: 12px 16px; }
     .data-table tbody tr {
-      display: flex;
-      flex-direction: column;
-      padding: 14px 16px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-rows: auto auto auto;
+      padding: 16px;
       border: 1px solid #e8ecf0;
-      border-radius: 12px;
+      border-radius: 14px;
       background: white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      gap: 8px;
-      border-left: 4px solid var(--brand);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      gap: 6px 12px;
+      border-left: 5px solid var(--brand);
+      cursor: pointer;
     }
     .data-table tbody td { 
       padding: 0; 
       border: none;
-      font-size: 13px;
+      font-size: 14px;
       display: flex;
       align-items: center;
     }
-    /* Company name - prominent */
+    /* Row 1: Company name (spans full width) */
     .data-table tbody td:nth-child(1) { 
-      font-size: 15px;
+      grid-column: 1 / -1;
+      font-size: 16px;
       font-weight: 600;
-      padding-bottom: 4px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #f4f5f7;
+      margin-bottom: 4px;
     }
     .data-table tbody td:nth-child(1) .company-avatar { 
-      width: 36px; height: 36px; font-size: 13px; 
+      width: 40px; height: 40px; font-size: 14px; min-width: 40px;
     }
-    /* ZIP/Location */
-    .data-table tbody td:nth-child(2) { 
-      font-size: 12px; 
-      color: #5E6C84;
-      padding: 2px 0;
-    }
-    /* Industry */
-    .data-table tbody td:nth-child(3) { 
-      font-size: 11px;
-      color: #97A0AF;
-    }
-    /* Intent score - make it pop */
-    .data-table tbody td:nth-child(4) { 
-      padding: 6px 0;
-    }
-    .data-table tbody td:nth-child(4) .intent-bar-wrap { width: 100%; }
-    /* Competitor POS */
-    .data-table tbody td:nth-child(5) { 
-      padding: 4px 0;
-    }
-    /* Revenue */
-    .data-table tbody td:nth-child(6) { 
-      font-size: 12px;
-      color: #1B8A5A;
-      font-weight: 600;
-    }
-    /* Employees - hide on mobile */
-    .data-table tbody td:nth-child(7) { display: none; }
-    /* Status */
-    .data-table tbody td:nth-child(8) { 
-      padding: 4px 0;
-    }
-    /* View button - full width */
-    .data-table tbody td:nth-child(9) { 
-      padding-top: 8px;
-      border-top: 1px solid #f0f2f5;
-      margin-top: 4px;
-    }
-    .data-table tbody td:nth-child(9) .btn { 
-      width: 100%; 
-      padding: 10px; 
-      font-size: 13px; 
-      border-radius: 8px;
-      font-weight: 600;
-    }
-
-    /* Detail panel */
-    .detail-panel { width: 100%; right: 0; border-radius: 0; }
-    .detail-panel .detail-body { padding: 16px; }
+    .data-table tbody td:nth-child(1) .company-name { font-size: 16px; }
+    .data-table tbody td:nth-child(1) .company-domain { font-size: 12px; }
     
-    /* Pagination */
-    .pagination { 
-      flex-direction: column; 
-      gap: 10px; 
-      padding: 16px;
-      align-items: center;
+    /* Row 2: Location + Intent Score side by side */
+    .data-table tbody td:nth-child(2) { 
+      grid-column: 1;
+      font-size: 13px; 
+      color: #344563;
     }
-    .page-btn { padding: 10px 16px; font-size: 14px; }
+    .data-table tbody td:nth-child(4) { 
+      grid-column: 2;
+      grid-row: 2;
+    }
+    .data-table tbody td:nth-child(4) .intent-bar-wrap { width: 80px; }
+    
+    /* Row 3: Competitor POS + Status */
+    .data-table tbody td:nth-child(5) { 
+      grid-column: 1;
+      padding: 4px 0;
+    }
+    .data-table tbody td:nth-child(8) { 
+      grid-column: 2;
+      grid-row: 3;
+      justify-content: flex-end;
+    }
+    
+    /* HIDE on mobile - see in detail view */
+    .data-table tbody td:nth-child(3) { display: none; } /* industry */
+    .data-table tbody td:nth-child(6) { display: none; } /* revenue */
+    .data-table tbody td:nth-child(7) { display: none; } /* employees */
+    .data-table tbody td:nth-child(9) { display: none; } /* view button - whole card is tappable */
+
+    /* Detail panel - full screen overlay */
+    .detail-overlay { z-index: 1000; }
+    .detail-panel { width: 100%; right: 0; border-radius: 16px 16px 0 0; max-height: 90vh; overflow-y: auto; }
+    .detail-panel .detail-header { padding: 20px 16px; }
+    .detail-panel .detail-body { padding: 16px; }
+    .detail-row { padding: 10px 0; font-size: 14px; }
+    
+    /* Pagination - easy to tap */
+    .pagination { 
+      padding: 20px 16px;
+      gap: 12px;
+    }
+    .page-btn { padding: 12px 20px; font-size: 15px; border-radius: 10px; min-width: 44px; }
     
     /* Map modal */
-    .map-modal { width: 95%; max-height: 85vh; border-radius: 12px; }
+    .map-modal { width: 95%; max-height: 85vh; border-radius: 16px; }
+    
+    /* Results meta */
+    .results-meta { padding: 8px 16px; font-size: 12px; }
   }
 
   @media (max-width: 480px) {
     .stats-row { grid-template-columns: 1fr; gap: 8px; }
-    .header-right .btn { font-size: 11px; padding: 7px 8px; }
-    .data-table tbody { padding: 4px 8px; }
-    .data-table tbody tr { padding: 12px; border-radius: 10px; }
+    .header-right { grid-template-columns: 1fr 1fr; }
+    .data-table tbody { padding: 8px 10px; gap: 10px; }
+    .data-table tbody tr { padding: 14px; }
+    .data-table tbody td:nth-child(1) .company-name { font-size: 15px; }
   }
 </style>
 </head>
