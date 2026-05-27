@@ -192,58 +192,139 @@
 
   /* MOBILE RESPONSIVE */
   @media (max-width: 768px) {
-    .header { flex-direction: column; gap: 8px; padding: 12px; }
-    .header-right { width: 100%; justify-content: space-between; }
-    .header-right .btn { font-size: 11px; padding: 6px 10px; }
-    .territory-bar { flex-direction: column; gap: 8px; padding: 10px 12px; }
-    .territory-meta { flex-wrap: wrap; gap: 6px; }
-    .stats-row { grid-template-columns: 1fr 1fr; gap: 8px; padding: 8px 12px; }
-    .filters-panel { flex-direction: column; gap: 8px; padding: 10px 12px; }
-    .filter-input, .filter-input-sm { width: 100%; min-width: unset; }
+    body { padding: 0; }
+    .header { flex-direction: column; gap: 6px; padding: 14px 16px; }
+    .header-left { width: 100%; }
+    .header-right { width: 100%; justify-content: flex-start; gap: 6px; flex-wrap: wrap; }
+    .header-right .btn { font-size: 12px; padding: 8px 12px; flex: 1; text-align: center; border-radius: 8px; }
     
-    /* Card layout for table on mobile */
-    .data-table thead { display: none; }
-    .data-table tbody tr {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 4px;
-      padding: 12px;
-      margin: 8px 12px;
-      border: 1px solid #e1e4e8;
+    .territory-bar { flex-direction: column; gap: 6px; padding: 12px 16px; }
+    .territory-meta { flex-wrap: wrap; gap: 8px; }
+    .territory-meta span { font-size: 12px; }
+    
+    .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px 16px; }
+    .stat-card { padding: 12px; border-radius: 10px; }
+    .stat-card h3 { font-size: 20px; }
+    
+    .filters-panel { 
+      flex-direction: column; 
+      gap: 10px; 
+      padding: 12px 16px; 
+      align-items: stretch;
+    }
+    .filter-input, .filter-input-sm { 
+      width: 100%; 
+      min-width: unset; 
+      padding: 12px; 
+      font-size: 14px;
       border-radius: 8px;
+    }
+    select.filter-input-sm {
+      padding: 12px;
+      font-size: 14px;
+      border-radius: 8px;
+      appearance: auto;
+    }
+    
+    /* Mobile card layout */
+    .data-table { border-collapse: separate; border-spacing: 0; }
+    .data-table thead { display: none; }
+    .data-table tbody { display: flex; flex-direction: column; gap: 10px; padding: 8px 12px; }
+    .data-table tbody tr {
+      display: flex;
+      flex-direction: column;
+      padding: 14px 16px;
+      border: 1px solid #e8ecf0;
+      border-radius: 12px;
       background: white;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      gap: 8px;
+      border-left: 4px solid var(--brand);
     }
     .data-table tbody td { 
-      padding: 4px 0; 
+      padding: 0; 
       border: none;
       font-size: 13px;
+      display: flex;
+      align-items: center;
     }
-    .data-table tbody td:first-child { 
-      grid-column: 1 / -1; 
-      font-weight: 600;
+    /* Company name - prominent */
+    .data-table tbody td:nth-child(1) { 
       font-size: 15px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid #f0f0f0;
-      margin-bottom: 4px;
+      font-weight: 600;
+      padding-bottom: 4px;
     }
-    .data-table tbody td:last-child {
-      grid-column: 1 / -1;
-      text-align: center;
+    .data-table tbody td:nth-child(1) .company-avatar { 
+      width: 36px; height: 36px; font-size: 13px; 
+    }
+    /* ZIP/Location */
+    .data-table tbody td:nth-child(2) { 
+      font-size: 12px; 
+      color: #5E6C84;
+      padding: 2px 0;
+    }
+    /* Industry */
+    .data-table tbody td:nth-child(3) { 
+      font-size: 11px;
+      color: #97A0AF;
+    }
+    /* Intent score - make it pop */
+    .data-table tbody td:nth-child(4) { 
+      padding: 6px 0;
+    }
+    .data-table tbody td:nth-child(4) .intent-bar-wrap { width: 100%; }
+    /* Competitor POS */
+    .data-table tbody td:nth-child(5) { 
+      padding: 4px 0;
+    }
+    /* Revenue */
+    .data-table tbody td:nth-child(6) { 
+      font-size: 12px;
+      color: #1B8A5A;
+      font-weight: 600;
+    }
+    /* Employees - hide on mobile */
+    .data-table tbody td:nth-child(7) { display: none; }
+    /* Status */
+    .data-table tbody td:nth-child(8) { 
+      padding: 4px 0;
+    }
+    /* View button - full width */
+    .data-table tbody td:nth-child(9) { 
       padding-top: 8px;
+      border-top: 1px solid #f0f2f5;
+      margin-top: 4px;
     }
-    .data-table tbody td:nth-child(5) { display: none; } /* hide revenue on mobile */
-    .data-table tbody td:nth-child(7) { display: none; } /* hide status on mobile */
+    .data-table tbody td:nth-child(9) .btn { 
+      width: 100%; 
+      padding: 10px; 
+      font-size: 13px; 
+      border-radius: 8px;
+      font-weight: 600;
+    }
 
-    .detail-panel { width: 100%; right: 0; }
-    .pagination { flex-direction: column; gap: 8px; padding: 12px; }
-    .map-modal { width: 95%; max-height: 80vh; }
+    /* Detail panel */
+    .detail-panel { width: 100%; right: 0; border-radius: 0; }
+    .detail-panel .detail-body { padding: 16px; }
+    
+    /* Pagination */
+    .pagination { 
+      flex-direction: column; 
+      gap: 10px; 
+      padding: 16px;
+      align-items: center;
+    }
+    .page-btn { padding: 10px 16px; font-size: 14px; }
+    
+    /* Map modal */
+    .map-modal { width: 95%; max-height: 85vh; border-radius: 12px; }
   }
 
   @media (max-width: 480px) {
-    .stats-row { grid-template-columns: 1fr; }
-    .header h1, .header .header.h1 { font-size: 13px !important; }
-    .data-table tbody tr { grid-template-columns: 1fr; margin: 6px 8px; }
+    .stats-row { grid-template-columns: 1fr; gap: 8px; }
+    .header-right .btn { font-size: 11px; padding: 7px 8px; }
+    .data-table tbody { padding: 4px 8px; }
+    .data-table tbody tr { padding: 12px; border-radius: 10px; }
   }
 </style>
 </head>
