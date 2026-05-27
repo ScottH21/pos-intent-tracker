@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#006AFF" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icon-192.png" />
 <title>POS Intent Tracker — Sales Intelligence</title>
 <style>
   :root {
@@ -183,6 +188,62 @@
   @media (max-width: 900px) {
     .stats-row { grid-template-columns: repeat(2, 1fr); }
     .detail-panel { width: 100%; }
+  }
+
+  /* MOBILE RESPONSIVE */
+  @media (max-width: 768px) {
+    .header { flex-direction: column; gap: 8px; padding: 12px; }
+    .header-right { width: 100%; justify-content: space-between; }
+    .header-right .btn { font-size: 11px; padding: 6px 10px; }
+    .territory-bar { flex-direction: column; gap: 8px; padding: 10px 12px; }
+    .territory-meta { flex-wrap: wrap; gap: 6px; }
+    .stats-row { grid-template-columns: 1fr 1fr; gap: 8px; padding: 8px 12px; }
+    .filters-panel { flex-direction: column; gap: 8px; padding: 10px 12px; }
+    .filter-input, .filter-input-sm { width: 100%; min-width: unset; }
+    
+    /* Card layout for table on mobile */
+    .data-table thead { display: none; }
+    .data-table tbody tr {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      padding: 12px;
+      margin: 8px 12px;
+      border: 1px solid #e1e4e8;
+      border-radius: 8px;
+      background: white;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .data-table tbody td { 
+      padding: 4px 0; 
+      border: none;
+      font-size: 13px;
+    }
+    .data-table tbody td:first-child { 
+      grid-column: 1 / -1; 
+      font-weight: 600;
+      font-size: 15px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #f0f0f0;
+      margin-bottom: 4px;
+    }
+    .data-table tbody td:last-child {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding-top: 8px;
+    }
+    .data-table tbody td:nth-child(5) { display: none; } /* hide revenue on mobile */
+    .data-table tbody td:nth-child(7) { display: none; } /* hide status on mobile */
+
+    .detail-panel { width: 100%; right: 0; }
+    .pagination { flex-direction: column; gap: 8px; padding: 12px; }
+    .map-modal { width: 95%; max-height: 80vh; }
+  }
+
+  @media (max-width: 480px) {
+    .stats-row { grid-template-columns: 1fr; }
+    .header h1, .header .header.h1 { font-size: 13px !important; }
+    .data-table tbody tr { grid-template-columns: 1fr; margin: 6px 8px; }
   }
 </style>
 </head>
@@ -813,6 +874,13 @@ loadLiveData().then(() => {
   applyFilters();
   updateTerritoryBar();
 });
+
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js')
+    .then(reg => console.log('SW registered:', reg.scope))
+    .catch(err => console.log('SW failed:', err));
+}
 </script>
 </body>
 </html>
