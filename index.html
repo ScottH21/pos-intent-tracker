@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>POS Intent Tracker — Sales Intelligence</title>
+<style>
+  :root {
+    --brand: #006AFF;
+    --brand-dark: #0052CC;
+    --brand-light: #EBF2FF;
+    --success: #00875A;
+    --success-bg: #E3FCEF;
+    --warning: #FF8B00;
+    --warning-bg: #FFFAE6;
+    --danger: #DE350B;
+    --danger-bg: #FFEBE6;
+    --gray-1: #172B4D;
+    --gray-2: #344563;
+    --gray-3: #5E6C84;
+    --gray-4: #97A0AF;
+    --gray-5: #C1C7D0;
+    --gray-6: #EBECF0;
+    --gray-7: #F4F5F7;
+    --white: #FFFFFF;
+    --radius: 8px;
+    --shadow: 0 2px 8px rgba(9,30,66,0.12);
+    --shadow-hover: 0 4px 16px rgba(9,30,66,0.18);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--gray-7); color: var(--gray-1); min-height: 100vh; }
+
+  /* HEADER */
+  .header { background: var(--white); border-bottom: 1px solid var(--gray-6); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .logo { width: 32px; height: 32px; background: var(--brand); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px; }
+  .header h1 { font-size: 16px; font-weight: 700; color: var(--gray-1); }
+  .header-sub { font-size: 12px; color: var(--gray-3); margin-top: 1px; }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .badge-live { background: var(--success-bg); color: var(--success); font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 20px; display: flex; align-items: center; gap: 4px; }
+  .badge-live::before { content: ''; width: 6px; height: 6px; background: var(--success); border-radius: 50%; }
+  .btn { padding: 7px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-primary { background: var(--brand); color: white; }
+  .btn-primary:hover { background: var(--brand-dark); }
+  .btn-secondary { background: var(--white); color: var(--gray-2); border: 1px solid var(--gray-5); }
+  .btn-secondary:hover { background: var(--gray-7); }
+
+  /* MAIN LAYOUT */
+  .main { max-width: 1400px; margin: 0 auto; padding: 24px; }
+
+  /* STATS ROW */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background: var(--white); border-radius: var(--radius); padding: 16px 20px; box-shadow: var(--shadow); }
+  .stat-label { font-size: 11px; font-weight: 600; color: var(--gray-3); text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-value { font-size: 28px; font-weight: 700; color: var(--gray-1); margin-top: 4px; line-height: 1; }
+  .stat-sub { font-size: 12px; color: var(--gray-3); margin-top: 4px; }
+  .stat-sub.up { color: var(--success); }
+  .stat-sub.up::before { content: '↑ '; }
+
+  /* FILTERS */
+  .filters-panel { background: var(--white); border-radius: var(--radius); padding: 16px 20px; box-shadow: var(--shadow); margin-bottom: 20px; }
+  .filters-row { display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+  .filter-group { display: flex; flex-direction: column; gap: 5px; }
+  .filter-group label { font-size: 11px; font-weight: 600; color: var(--gray-3); text-transform: uppercase; letter-spacing: 0.5px; }
+  .filter-input { height: 36px; border: 1.5px solid var(--gray-5); border-radius: 6px; padding: 0 10px; font-size: 13px; color: var(--gray-1); background: var(--white); outline: none; transition: border-color 0.15s; min-width: 160px; }
+  .filter-input:focus { border-color: var(--brand); }
+  select.filter-input { cursor: pointer; }
+  .zip-tags { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-height: 36px; }
+  .zip-tag { background: var(--brand-light); color: var(--brand-dark); font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 4px; display: flex; align-items: center; gap: 5px; }
+  .zip-tag button { background: none; border: none; cursor: pointer; color: var(--brand); font-size: 14px; line-height: 1; padding: 0; }
+  .zip-input-wrap { display: flex; gap: 6px; }
+  .filter-actions { display: flex; gap: 8px; margin-left: auto; }
+  .filter-divider { width: 1px; background: var(--gray-6); align-self: stretch; margin: 0 4px; }
+  .results-meta { font-size: 13px; color: var(--gray-3); margin-bottom: 12px; }
+  .results-meta strong { color: var(--gray-1); }
+
+  /* TABLE */
+  .table-wrap { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .table-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--gray-6); }
+  .table-title { font-size: 14px; font-weight: 700; color: var(--gray-1); }
+  .view-toggle { display: flex; border: 1px solid var(--gray-5); border-radius: 6px; overflow: hidden; }
+  .view-btn { background: none; border: none; padding: 5px 10px; cursor: pointer; color: var(--gray-3); font-size: 13px; }
+  .view-btn.active { background: var(--brand-light); color: var(--brand); }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: var(--gray-7); }
+  th { padding: 10px 16px; font-size: 11px; font-weight: 700; color: var(--gray-3); text-transform: uppercase; letter-spacing: 0.5px; text-align: left; white-space: nowrap; border-bottom: 1px solid var(--gray-6); cursor: pointer; user-select: none; }
+  th:hover { color: var(--brand); }
+  th .sort-icon { color: var(--gray-5); margin-left: 4px; }
+  th.sorted .sort-icon { color: var(--brand); }
+  td { padding: 12px 16px; font-size: 13px; border-bottom: 1px solid var(--gray-6); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--gray-7); }
+  .company-cell { display: flex; align-items: center; gap: 10px; }
+  .company-avatar { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: white; flex-shrink: 0; }
+  .company-name { font-weight: 600; color: var(--gray-1); }
+  .company-domain { font-size: 11px; color: var(--gray-3); }
+
+  /* INTENT SCORE */
+  .intent-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .intent-bar { height: 6px; width: 80px; background: var(--gray-6); border-radius: 3px; overflow: hidden; }
+  .intent-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+  .intent-score-val { font-size: 13px; font-weight: 700; min-width: 28px; }
+  .score-high .intent-bar-fill { background: var(--success); }
+  .score-high .intent-score-val { color: var(--success); }
+  .score-med .intent-bar-fill { background: var(--warning); }
+  .score-med .intent-score-val { color: var(--warning); }
+  .score-low .intent-bar-fill { background: var(--gray-4); }
+  .score-low .intent-score-val { color: var(--gray-4); }
+
+  /* SIGNAL CHIPS */
+  .signals { display: flex; flex-wrap: wrap; gap: 4px; }
+  .signal-chip { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; background: var(--brand-light); color: var(--brand-dark); white-space: nowrap; }
+  .signal-chip.hot { background: #FFF0E6; color: #BF3600; }
+  .signal-chip.warm { background: var(--warning-bg); color: var(--warning); }
+
+  /* STATUS BADGE */
+  .status-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 20px; }
+  .status-badge.hot { background: #FFF0E6; color: #BF3600; }
+  .status-badge.hot::before { content: '🔥'; font-size: 10px; }
+  .status-badge.active { background: var(--success-bg); color: var(--success); }
+  .status-badge.active::before { content: ''; width: 6px; height: 6px; background: var(--success); border-radius: 50%; }
+  .status-badge.new { background: var(--brand-light); color: var(--brand-dark); }
+  .status-badge.new::before { content: '✦'; font-size: 8px; }
+
+  /* DETAIL PANEL */
+  .detail-overlay { position: fixed; inset: 0; background: rgba(9,30,66,0.35); z-index: 200; display: flex; justify-content: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .detail-overlay.open { opacity: 1; pointer-events: all; }
+  .detail-panel { width: 420px; background: var(--white); height: 100%; overflow-y: auto; box-shadow: -4px 0 24px rgba(9,30,66,0.15); transform: translateX(100%); transition: transform 0.25s cubic-bezier(0.4,0,0.2,1); }
+  .detail-overlay.open .detail-panel { transform: translateX(0); }
+  .detail-head { padding: 20px; border-bottom: 1px solid var(--gray-6); display: flex; align-items: flex-start; justify-content: space-between; }
+  .detail-close { background: none; border: none; cursor: pointer; color: var(--gray-3); font-size: 20px; padding: 0; }
+  .detail-body { padding: 20px; }
+  .detail-section { margin-bottom: 20px; }
+  .detail-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-3); margin-bottom: 10px; }
+  .detail-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--gray-6); font-size: 13px; }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-row span:first-child { color: var(--gray-3); }
+  .detail-row span:last-child { font-weight: 600; color: var(--gray-1); text-align: right; }
+  .timeline-item { display: flex; gap: 10px; margin-bottom: 12px; }
+  .timeline-dot { width: 8px; height: 8px; background: var(--brand); border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+  .timeline-text { font-size: 12px; color: var(--gray-2); }
+  .timeline-date { font-size: 11px; color: var(--gray-4); margin-top: 2px; }
+
+  /* EXPORT BANNER */
+  .export-banner { background: linear-gradient(135deg, var(--brand) 0%, #0039A6 100%); color: white; border-radius: var(--radius); padding: 14px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
+  .export-banner h3 { font-size: 13px; font-weight: 700; }
+  .export-banner p { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+  .btn-white { background: white; color: var(--brand); font-weight: 700; font-size: 12px; padding: 6px 14px; border-radius: 6px; border: none; cursor: pointer; }
+
+  /* PAGINATION */
+  .pagination { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-top: 1px solid var(--gray-6); }
+  .pagination-info { font-size: 12px; color: var(--gray-3); }
+  .pagination-controls { display: flex; gap: 4px; }
+  .page-btn { width: 28px; height: 28px; border-radius: 4px; border: 1px solid var(--gray-5); background: white; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--gray-2); display: flex; align-items: center; justify-content: center; }
+  .page-btn.active { background: var(--brand); color: white; border-color: var(--brand); }
+  .page-btn:hover:not(.active) { background: var(--gray-7); }
+
+  /* MAP VIEW MODAL */
+  .map-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:999; display:none; align-items:center; justify-content:center; }
+  .map-overlay.show { display:flex; }
+  .map-modal { background:white; border-radius:12px; width:90vw; max-width:900px; height:70vh; display:flex; flex-direction:column; overflow:hidden; }
+  .map-modal-header { padding:16px 20px; border-bottom:1px solid var(--gray-6); display:flex; align-items:center; justify-content:space-between; }
+  .map-modal-body { flex:1; overflow:auto; padding:20px; }
+  .map-zip-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:12px; }
+  .map-zip-card { background:var(--gray-7); border:1.5px solid var(--gray-6); border-radius:8px; padding:12px; cursor:pointer; transition:all 0.15s; }
+  .map-zip-card:hover { border-color:var(--brand); background:var(--brand-light); }
+  .map-zip-card.hot { border-color:#DE350B; background:#FFEBE6; }
+
+  /* DATA SOURCE INFO (legacy) */
+  .data-source-card { background: var(--warning-bg); border: 1px solid #FFD740; border-radius: var(--radius); padding: 14px 16px; margin-bottom: 20px; display: flex; gap: 12px; align-items: flex-start; display: none; }
+  .data-source-card .icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+  .data-source-card h4 { font-size: 13px; font-weight: 700; color: var(--gray-1); }
+  .data-source-card p { font-size: 12px; color: var(--gray-2); margin-top: 3px; line-height: 1.5; }
+  .provider-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .provider-pill { background: white; border: 1px solid var(--gray-5); font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; color: var(--gray-2); }
+
+  /* EMPTY STATE */
+  .empty-state { padding: 60px 20px; text-align: center; }
+  .empty-state h3 { font-size: 16px; font-weight: 600; color: var(--gray-2); }
+  .empty-state p { font-size: 13px; color: var(--gray-4); margin-top: 6px; }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+
+  @media (max-width: 900px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .detail-panel { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo">POS</div>
+    <div>
+      <div class="header h1" style="font-size:15px;font-weight:700">POS Intent Tracker</div>
+      <div class="header-sub" style="font-size:11px;color:#5E6C84">Austin & San Antonio · Sellers with Square Buying Intent</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="badge-live" id="badgeLive">● Live</div>
+    <button class="btn btn-secondary" onclick="showHotOnly()">🔥 Hot Leads</button>
+    <button class="btn btn-secondary" onclick="exportCSV()">⬇ Export</button>
+    <button class="btn btn-primary" onclick="showMapView()">📍 Map View</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- TERRITORY QUICK STATS -->
+  <div id="territoryBar" style="background:linear-gradient(135deg,#0052CC 0%,#006AFF 100%); border-radius:10px; padding:16px 20px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="background:rgba(255,255,255,0.2);border-radius:8px;padding:8px 12px;">
+        <span style="font-size:24px">📍</span>
+      </div>
+      <div>
+        <div style="color:white;font-weight:700;font-size:15px;">Your Territory: Austin & San Antonio</div>
+        <div style="color:rgba(255,255,255,0.8);font-size:12px;" id="territoryMeta">Loading live data...</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;">
+      <div style="text-align:center;background:rgba(255,255,255,0.15);border-radius:8px;padding:8px 14px;">
+        <div style="color:white;font-size:20px;font-weight:700;" id="tHot">—</div>
+        <div style="color:rgba(255,255,255,0.8);font-size:10px;text-transform:uppercase;">🔥 Hot</div>
+      </div>
+      <div style="text-align:center;background:rgba(255,255,255,0.15);border-radius:8px;padding:8px 14px;">
+        <div style="color:white;font-size:20px;font-weight:700;" id="tCompetitor">—</div>
+        <div style="color:rgba(255,255,255,0.8);font-size:10px;text-transform:uppercase;">🎯 On Competitor</div>
+      </div>
+      <div style="text-align:center;background:rgba(255,255,255,0.15);border-radius:8px;padding:8px 14px;">
+        <div style="color:white;font-size:20px;font-weight:700;" id="tNew">—</div>
+        <div style="color:rgba(255,255,255,0.8);font-size:10px;text-transform:uppercase;">🆕 New Biz</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS ROW -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Companies In-Market</div>
+      <div class="stat-value" id="statTotal">—</div>
+      <div class="stat-sub up" id="statNew">loading...</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">High Intent (≥75)</div>
+      <div class="stat-value" id="statHigh">—</div>
+      <div class="stat-sub">Priority targets</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Zip Codes Covered</div>
+      <div class="stat-value" id="statZips">—</div>
+      <div class="stat-sub">Unique territories</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg Intent Score</div>
+      <div class="stat-value" id="statAvg">—</div>
+      <div class="stat-sub">Out of 100</div>
+    </div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="filters-panel">
+    <div class="filters-row">
+      <div class="filter-group">
+        <label>Search Company</label>
+        <input type="text" class="filter-input" id="searchInput" placeholder="Company name or domain..." oninput="applyFilters()" />
+      </div>
+      <div class="filter-group">
+        <label>Add Zip Code</label>
+        <div class="zip-input-wrap">
+          <input type="text" class="filter-input" id="zipInput" placeholder="e.g. 94103" maxlength="5" style="min-width:110px" onkeydown="if(event.key==='Enter')addZip()" />
+          <button class="btn btn-secondary" onclick="addZip()">Add</button>
+        </div>
+      </div>
+      <div class="filter-group" style="flex:1">
+        <label>Active Zip Filters</label>
+        <div class="zip-tags" id="zipTags"><span style="font-size:12px;color:#97A0AF">No filters — showing all zip codes</span></div>
+      </div>
+      <div class="filter-divider"></div>
+      <div class="filter-group">
+        <label>Industry</label>
+        <select class="filter-input" id="industryFilter" onchange="applyFilters()">
+          <option value="">All Industries</option>
+          <option value="Food and Drink">Food & Drink</option>
+          <option value="Retail">Retail</option>
+          <option value="Professional Services">Professional Services</option>
+          <option value="Home and Repair">Home & Repair</option>
+          <option value="Beauty and Personal Care">Beauty & Personal Care</option>
+          <option value="Leisure and Entertainment">Leisure & Entertainment</option>
+          <option value="Health Care and Fitness">Health & Fitness</option>
+          <option value="Charities, Education and Membership">Charities & Education</option>
+          <option value="Casual Use">Casual Use</option>
+          <option value="Transportation">Transportation</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Competitor POS</label>
+        <select class="filter-input" id="competitorFilter" onchange="applyFilters()">
+          <option value="">All Competitors</option>
+          <option value="Toast">Toast</option>
+          <option value="Clover">Clover</option>
+          <option value="Aloha">Aloha</option>
+          <option value="QuickBooks">QuickBooks</option>
+          <option value="Shopify">Shopify</option>
+          <option value="Heartland">Heartland</option>
+          <option value="New Business">New Business (No POS)</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Min Intent Score</label>
+        <select class="filter-input" id="scoreFilter" onchange="applyFilters()">
+          <option value="0">Any Score</option>
+          <option value="50">Medium (50+)</option>
+          <option value="75">High (75+)</option>
+          <option value="90">Very High (90+)</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Sort By</label>
+        <select class="filter-input" id="sortField" onchange="applyFilters()">
+          <option value="intentScore">Intent Score</option>
+          <option value="companyName">Company Name</option>
+          <option value="revenue">Revenue</option>
+          <option value="employees">Employees</option>
+          <option value="competitorPOS">Competitor POS</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-secondary" onclick="clearFilters()">Clear All</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS META + TABLE -->
+  <div class="results-meta" id="resultsMeta"></div>
+
+  <div class="table-wrap">
+    <div class="table-header">
+      <div class="table-title">In-Market Accounts — POS Systems</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-size:12px;color:#5E6C84">Updated: <strong id="updateTime">Just now</strong></span>
+      </div>
+    </div>
+    <table id="mainTable">
+      <thead>
+        <tr>
+          <th>Company</th>
+          <th>Zip Code</th>
+          <th>Industry</th>
+          <th>Intent Score</th>
+          <th>Competitor POS</th>
+          <th>Revenue</th>
+          <th>Employees</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+    <div class="pagination">
+      <div class="pagination-info" id="pageInfo"></div>
+      <div class="pagination-controls" id="pagControls"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- DETAIL SIDE PANEL -->
+<div class="detail-overlay" id="detailOverlay" onclick="closeDetail(event)">
+  <div class="detail-panel" id="detailPanel">
+    <div class="detail-head">
+      <div>
+        <div id="detailCompanyName" style="font-size:16px;font-weight:700;color:#172B4D"></div>
+        <div id="detailCompanyDomain" style="font-size:12px;color:#5E6C84;margin-top:2px"></div>
+      </div>
+      <button class="detail-close" onclick="closeDetailPanel()">×</button>
+    </div>
+    <div class="detail-body" id="detailBody"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// LIVE DATA LOADER — Fetches from data/accounts.json
+// Run: ./scripts/refresh.sh "94103,94107,94110" to refresh
+// ============================================================
+let SAMPLE_DATA = []; // Will be populated from accounts.json
+
+async function loadLiveData() {
+  try {
+    const resp = await fetch('data/accounts.json?t=' + Date.now());
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const payload = await resp.json();
+    
+    SAMPLE_DATA = payload.records || [];
+    state.data = SAMPLE_DATA;
+    state.filtered = [...SAMPLE_DATA];
+    
+    // Update live badge
+    const badge = document.getElementById('badgeLive');
+    if (badge) badge.style.color = '#00875A';
+    
+    console.log(`✓ Loaded ${SAMPLE_DATA.length} records from SFDC`);
+    return true;
+  } catch (e) {
+    console.warn('Could not load live data:', e.message);
+    SAMPLE_DATA = [
+      { id:1, companyName:"No data loaded", zip:"—", city:"", state:"", industry:"", intentScore:0, employees:"", signals:["Offline — run refresh.sh"], status:"new", notes:"", trending:false }
+    ];
+    state.data = SAMPLE_DATA;
+    state.filtered = [...SAMPLE_DATA];
+    
+    const badge = document.getElementById('badgeLive');
+    if (badge) { badge.textContent = '● Offline'; badge.style.color = '#FF8B00'; }
+    return false;
+  }
+}
+
+// ============================================================
+// APP STATE
+// ============================================================
+let state = {
+  data: [],
+  filtered: [],
+  zipFilters: [],
+  page: 1,
+  pageSize: 15,
+};
+
+const COLORS = ['#0052CC','#00875A','#BF3600','#5243AA','#0065FF','#36B37E','#FF5630','#6554C0'];
+function avatarColor(name) { let h=0; for(let c of name) h=(h+c.charCodeAt(0))%COLORS.length; return COLORS[h]; }
+function initials(name) { return name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+
+function scoreClass(s) { return s>=75?'score-high':s>=50?'score-med':'score-low'; }
+
+function addZip() {
+  const inp = document.getElementById('zipInput');
+  const z = inp.value.trim().replace(/\D/g,'');
+  if(z.length===5 && !state.zipFilters.includes(z)) {
+    state.zipFilters.push(z);
+    inp.value='';
+    renderZipTags();
+    applyFilters();
+  } else if(z.length>0 && z.length!==5) {
+    inp.style.borderColor='var(--danger)';
+    setTimeout(()=>inp.style.borderColor='',1500);
+  }
+}
+function removeZip(z) {
+  state.zipFilters = state.zipFilters.filter(x=>x!==z);
+  renderZipTags();
+  applyFilters();
+}
+function renderZipTags() {
+  const el = document.getElementById('zipTags');
+  if(!state.zipFilters.length) {
+    el.innerHTML='<span style="font-size:12px;color:#97A0AF">No filters — showing all zip codes</span>';
+    return;
+  }
+  el.innerHTML = state.zipFilters.map(z=>`
+    <div class="zip-tag">${z}<button onclick="removeZip('${z}')">×</button></div>
+  `).join('');
+}
+
+function applyFilters() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const industry = document.getElementById('industryFilter').value;
+  const competitor = document.getElementById('competitorFilter').value;
+  const minScore = parseInt(document.getElementById('scoreFilter').value)||0;
+  const sortField = document.getElementById('sortField').value;
+
+  let f = state.data.filter(d => {
+    if(state.zipFilters.length && !state.zipFilters.includes(d.zip)) return false;
+    if(industry && d.industry !== industry) return false;
+    if(competitor && (d.competitorPOS||'') !== competitor) return false;
+    if(d.intentScore < minScore) return false;
+    if(search) {
+      const term = search.toLowerCase();
+      const name = (d.companyName||'').toLowerCase();
+      const city = (d.city||'').toLowerCase();
+      const comp = (d.competitorPOS||'').toLowerCase();
+      const street = (d.street||'').toLowerCase();
+      const addr = (d.fullAddress||'').toLowerCase();
+      if(!name.includes(term) && !city.includes(term) && !comp.includes(term) && !street.includes(term) && !addr.includes(term)) return false;
+    }
+    return true;
+  });
+
+  f.sort((a,b)=>{
+    if(sortField==='intentScore') return b.intentScore-a.intentScore;
+    if(sortField==='companyName') return (a.companyName||'').localeCompare(b.companyName||'');
+    if(sortField==='revenue') return (b.annualRevenue||0) - (a.annualRevenue||0);
+    if(sortField==='employees') return (a.employees||'').localeCompare(b.employees||'');
+    if(sortField==='competitorPOS') return (a.competitorPOS||'').localeCompare(b.competitorPOS||'');
+    return 0;
+  });
+
+  state.filtered = f;
+  state.page = 1;
+  updateStats();
+  renderTable();
+}
+
+function clearFilters() {
+  state.zipFilters = [];
+  document.getElementById('searchInput').value='';
+  document.getElementById('industryFilter').value='';
+  document.getElementById('competitorFilter').value='';
+  document.getElementById('scoreFilter').value='0';
+  document.getElementById('sortField').value='intentScore';
+  renderZipTags();
+  applyFilters();
+}
+
+function updateStats() {
+  const d = state.filtered;
+  document.getElementById('statTotal').textContent = d.length;
+  document.getElementById('statHigh').textContent = d.filter(x=>x.intentScore>=75).length;
+  const zips = [...new Set(d.map(x=>x.zip).filter(Boolean))];
+  document.getElementById('statZips').textContent = zips.length;
+  const avg = d.length ? Math.round(d.reduce((s,x)=>s+x.intentScore,0)/d.length) : 0;
+  document.getElementById('statAvg').textContent = avg||'—';
+  const hotLeads = d.filter(x=>x.status==='hot').length;
+  const withCompetitor = d.filter(x=>x.competitorPOS && !['None','Unknown','Other','N/A'].includes(x.competitorPOS)).length;
+  document.getElementById('statNew').textContent = `${withCompetitor} with known competitor POS`;
+}
+
+function renderTable() {
+  const tbody = document.getElementById('tableBody');
+  const meta = document.getElementById('resultsMeta');
+  const total = state.filtered.length;
+  const start = (state.page-1)*state.pageSize;
+  const end = Math.min(start+state.pageSize, total);
+  const page = state.filtered.slice(start, end);
+
+  meta.innerHTML = `Showing <strong>${start+1}–${end}</strong> of <strong>${total}</strong> in-market accounts`;
+
+  if(!page.length) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">🔍</div><h3>No accounts match your filters</h3><p>Try adjusting your zip codes, industry, or score threshold</p></div></td></tr>`;
+    document.getElementById('pageInfo').textContent='';
+    document.getElementById('pagControls').innerHTML='';
+    return;
+  }
+
+  tbody.innerHTML = page.map(d=>{
+    const competitor = d.competitorPOS || '';
+    const competitorClass = ['Toast','Clover','Aloha','Revel','Lightspeed','SpotOn'].includes(competitor) ? 'hot' : 
+                            competitor === 'New Business' ? 'warm' : '';
+    const signals = d.signals || [];
+    return `
+    <tr style="cursor:pointer" onclick="openDetail(${d.id})">
+      <td>
+        <div class="company-cell">
+          <div class="company-avatar" style="background:${avatarColor(d.companyName||'')}">${initials(d.companyName||'?')}</div>
+          <div>
+            <div class="company-name">${d.companyName||'Unknown'}${d.trending?` <span style="font-size:10px;background:#FFF0E6;color:#BF3600;padding:1px 5px;border-radius:3px;font-weight:700;margin-left:4px">↑ High Intent</span>`:''}</div>
+            <div class="company-domain">${d.contactName||''}</div>
+          </div>
+        </div>
+      </td>
+      <td><span style="font-family:monospace;font-weight:600;font-size:13px">${d.zip||''}</span><br><span style="font-size:11px;color:#5E6C84">${d.city||''}, ${d.state||'TX'}</span>${d.street ? `<br><span style="font-size:10px;color:#97A0AF">${d.street}</span>` : ''}</td>
+      <td><span style="font-size:12px;color:#344563">${d.industry||'Unknown'}</span></td>
+      <td>
+        <div class="intent-bar-wrap ${scoreClass(d.intentScore)}">
+          <div class="intent-bar"><div class="intent-bar-fill" style="width:${d.intentScore}%"></div></div>
+          <div class="intent-score-val">${d.intentScore}</div>
+        </div>
+      </td>
+      <td>${competitor ? `<span class="signal-chip ${competitorClass}" style="font-size:11px">${competitor}</span>` : '<span style="color:#97A0AF;font-size:11px">—</span>'}</td>
+      <td>
+        ${d.annualRevenue ? '$'+Number(d.annualRevenue).toLocaleString() : '<span style="color:#B0B7C3">—</span>'}
+      </td>
+      <td style="font-size:12px;color:#344563">${d.employees || '<span style="color:#B0B7C3">—</span>'}</td>
+      <td><span class="status-badge ${d.status}">${d.status==='hot'?'Hot Lead':d.status==='active'?'Active':'New'}</span></td>
+      <td><button class="btn btn-secondary" style="font-size:11px;padding:4px 10px" onclick="event.stopPropagation();openDetail(${d.id})">View →</button></td>
+    </tr>`;
+  }).join('');
+
+  // Pagination
+  const totalPages = Math.ceil(total/state.pageSize);
+  document.getElementById('pageInfo').textContent = `Page ${state.page} of ${totalPages}`;
+  let paginationHTML = '';
+  if(state.page>1) paginationHTML+=`<button class="page-btn" onclick="goPage(${state.page-1})">‹</button>`;
+  for(let p=Math.max(1,state.page-2); p<=Math.min(totalPages,state.page+2); p++) {
+    paginationHTML+=`<button class="page-btn${p===state.page?' active':''}" onclick="goPage(${p})">${p}</button>`;
+  }
+  if(state.page<totalPages) paginationHTML+=`<button class="page-btn" onclick="goPage(${state.page+1})">›</button>`;
+  document.getElementById('pagControls').innerHTML = paginationHTML;
+}
+
+function goPage(p) { state.page=p; renderTable(); window.scrollTo({top:0,behavior:'smooth'}); }
+
+function openDetail(id) {
+  const d = state.data.find(x=>x.id===id);
+  if(!d) return;
+  currentDetailRecord = d;
+  document.getElementById('detailCompanyName').textContent = d.companyName||'Unknown';
+  document.getElementById('detailCompanyDomain').textContent = d.fullAddress || ((d.contactName||'') + ' · ' + (d.city||'') + ', ' + (d.state||'TX'));
+  
+  const signals = d.signals || [];
+  const competitor = d.competitorPOS || 'Unknown';
+  const behaviorScore = d.marketoBehaviorScore || 0;
+  const leadScore = d.marketoLeadScore || 0;
+  const dsScore = d.dsLeadScore || 0;
+  
+  document.getElementById('detailBody').innerHTML = `
+    <div class="detail-section">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div class="company-avatar" style="background:${avatarColor(d.companyName||'')};width:48px;height:48px;font-size:18px">${initials(d.companyName||'?')}</div>
+        <div>
+          <div class="${scoreClass(d.intentScore)}" style="font-size:28px;font-weight:800">${d.intentScore}<span style="font-size:13px;font-weight:400;color:#5E6C84">/100</span></div>
+          <div style="font-size:11px;color:#5E6C84;font-weight:600">INTENT SCORE</div>
+        </div>
+        <div style="margin-left:auto"><span class="status-badge ${d.status}">${d.status==='hot'?'Hot Lead':d.status==='active'?'Active':'New'}</span></div>
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Company Info</div>
+      <div class="detail-row"><span>Industry</span><span>${d.industry||'Unknown'}</span></div>
+      <div class="detail-row"><span>Location</span><span>${d.fullAddress || (d.zip + ' · ' + (d.city||'') + ', ' + (d.state||'TX'))}</span></div>
+      ${d.phone ? `<div class="detail-row"><span>Phone</span><span><a href="tel:${d.phone}" style="color:#0052CC">${d.phone}</a></span></div>` : ''}
+      ${d.email ? `<div class="detail-row"><span>Email</span><span><a href="mailto:${d.email}" style="color:#0052CC">${d.email}</a></span></div>` : ''}
+      ${d.annualRevenue ? `<div class="detail-row"><span>Annual Revenue</span><span style="font-weight:700;color:#00875A">$${Number(d.annualRevenue).toLocaleString()}</span></div>` : ''}
+      <div class="detail-row"><span>Employees</span><span>${d.employees||'—'}</span></div>
+      ${d.website ? `<div class="detail-row"><span>Website</span><span><a href="${d.website.startsWith('http')?d.website:'https://'+d.website}" target="_blank" style="color:#0052CC">${d.website.replace('https://','').replace('http://','')}</a></span></div>` : ''}
+      <div class="detail-row"><span>Contact</span><span>${d.contactName||'—'}</span></div>
+      <div class="detail-row"><span>Lead Status</span><span>${d.leadStatus||'—'}</span></div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">POS Intelligence</div>
+      <div class="detail-row"><span>Competitor POS</span><span style="color:${['Toast','Clover','Aloha','Revel'].includes(competitor)?'#BF3600':'#344563'};font-weight:700">${competitor}</span></div>
+      <div class="detail-row"><span>Lead Source</span><span>${d.leadSource||'—'}</span></div>
+      <div class="detail-row"><span>Marketo Behavior Score</span><span style="color:${behaviorScore>=50?'#00875A':'#5E6C84'}">${behaviorScore||'—'}</span></div>
+      <div class="detail-row"><span>Marketo Lead Score</span><span>${leadScore||'—'}</span></div>
+      <div class="detail-row"><span>DS Lead Score</span><span>${dsScore||'—'}</span></div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Signals & Notes</div>
+      <div class="signals" style="gap:6px;margin-bottom:10px">${signals.map((s,i)=>`<span class="signal-chip${i===0&&d.intentScore>=80?' hot':d.intentScore>=65?' warm':''}" style="font-size:12px;padding:4px 10px">${s}</span>`).join('')}</div>
+      ${d.notes ? `<div style="background:#F4F5F7;border-radius:6px;padding:10px 12px;font-size:13px;color:#344563;line-height:1.5">${d.notes}</div>` : ''}
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Recommended Actions</div>
+      <div style="background:#EBF2FF;border-radius:6px;padding:12px;font-size:12px;color:#0052CC;line-height:1.6">
+        ${competitor==='Toast' ? '🎯 <strong>Toast switcher opportunity.</strong> Highlight Square lower processing fees and integrated ecosystem.' :
+          competitor==='Clover' ? '🎯 <strong>Clover displacement.</strong> Lead with Square free software tier and no long-term contract.' :
+          competitor==='New Business' ? '🎯 <strong>Greenfield opportunity.</strong> No existing POS — position Square as the all-in-one starter solution.' :
+          competitor==='Aloha' ? '🎯 <strong>Legacy system upgrade.</strong> Aloha is outdated — lead with modern cloud-based features.' :
+          '🎯 <strong>Outreach recommended.</strong> Confirm current POS situation and pain points.'}
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-primary" style="flex:1" onclick="copySfdcUpdate(this)">📋 Copy SFDC Update</button>
+      <button class="btn btn-secondary" style="flex:1" onclick="copySfdcTask(this)">📋 Copy SFDC Task</button>
+    </div>
+  `;
+  document.getElementById('detailOverlay').classList.add('open');
+}
+function closeDetail(e) { if(e.target===document.getElementById('detailOverlay')) closeDetailPanel(); }
+function closeDetailPanel() { document.getElementById('detailOverlay').classList.remove('open'); }
+
+let currentDetailRecord = null;
+
+function copySfdcUpdate(btn) {
+  const d = currentDetailRecord;
+  if (!d) return;
+  const today = new Date().toISOString().split('T')[0];
+  const id = d.sfdcId || d.id;
+  const cmd = `sq agent-tools salesforce-sq update --object Lead --id ${id} --fields "POS_Intent_Score__c=${d.intentScore},Last_Intent_Signal_Date__c=${today},Product_Interest__c=Point of Sale"`;
+  copyToClipboard(cmd, btn);
+}
+
+function copySfdcTask(btn) {
+  const d = currentDetailRecord;
+  if (!d) return;
+  const today = new Date().toISOString().split('T')[0];
+  const id = d.sfdcId || '';
+  const priority = d.intentScore >= 75 ? 'High' : 'Normal';
+  const competitor = d.competitorPOS || 'Unknown';
+  const cmd = `sq agent-tools salesforce-sq create --object Task --fields "Subject=POS Intent Follow-up - ${d.companyName},WhoId=${id},ActivityDate=${today},Description=Competitor POS: ${competitor}. Intent score: ${d.intentScore}/100. Recommend outreach.,Priority=${priority}"`;
+  copyToClipboard(cmd, btn);
+}
+
+function copyToClipboard(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✅ Copied!';
+    btn.style.background = '#00875A';
+    btn.style.color = '#fff';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.background = ''; btn.style.color = ''; }, 2000);
+  }).catch(() => {
+    // Fallback for older browsers
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✅ Copied!';
+    btn.style.background = '#00875A';
+    btn.style.color = '#fff';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.background = ''; btn.style.color = ''; }, 2000);
+  });
+}
+
+function exportCSV() {
+  const headers = ['Company','Street','City','State','Zip','Full Address','Phone','Email','Website','Industry','Annual Revenue','Employees','Intent Score','Competitor POS','Lead Source','Lead Status','Marketo Behavior','Marketo Lead Score','Signals','Notes','SFDC ID'];
+  const rows = state.filtered.map(d=>[
+    d.companyName||'',d.street||'',d.city||'',d.state||'',d.zip||'',d.fullAddress||'',d.phone||'',d.email||'',d.website||'',d.industry||'',d.annualRevenue||'',d.employees||'',d.intentScore||0,d.competitorPOS||'',d.leadSource||'',d.leadStatus||'',d.marketoBehaviorScore||'',d.marketoLeadScore||'',(d.signals||[]).join('; '),d.notes||'',d.sfdcId||''
+  ].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','));
+  const csv = [headers.join(','),...rows].join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='pos-intent-austin-sa-'+new Date().toISOString().split('T')[0]+'.csv';
+  a.click();
+}
+
+
+// ============================================================
+// FIELD SALES FEATURES
+// ============================================================
+
+function showHotOnly() {
+  // Quick filter to show only hot leads (70+)
+  document.getElementById('filterScore').value = '70';
+  applyFilters();
+  window.scrollTo({top: document.querySelector('.table-container').offsetTop - 80, behavior:'smooth'});
+}
+
+function showMapView() {
+  // Build ZIP-based territory map
+  const zipData = {};
+  state.data.forEach(d => {
+    const zip = d.zip || '';
+    if (!zip) return;
+    if (!zipData[zip]) zipData[zip] = { total: 0, hot: 0, competitors: {}, city: d.city || '' };
+    zipData[zip].total++;
+    if (d.intentScore >= 70) zipData[zip].hot++;
+    const comp = d.competitorPOS || '';
+    if (comp) zipData[zip].competitors[comp] = (zipData[zip].competitors[comp]||0) + 1;
+  });
+
+  const sorted = Object.entries(zipData).sort((a,b) => b[1].hot - a[1].hot || b[1].total - a[1].total);
+  
+  let html = '<div class="map-zip-grid">';
+  sorted.forEach(([zip, data]) => {
+    const topComp = Object.entries(data.competitors).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,v])=>`${k} (${v})`).join(', ');
+    const isHot = data.hot >= 3;
+    html += `
+      <div class="map-zip-card ${isHot?'hot':''}" onclick="filterByZipFromMap('${zip}')">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span style="font-weight:700;font-size:16px;">${zip}</span>
+          ${data.hot > 0 ? `<span style="background:#DE350B;color:white;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;">🔥 ${data.hot}</span>` : ''}
+        </div>
+        <div style="font-size:12px;color:#5E6C84;margin-bottom:4px;">${data.city || 'Texas'} · ${data.total} leads</div>
+        <div style="font-size:11px;color:#97A0AF;">${topComp || 'No competitor data'}</div>
+      </div>`;
+  });
+  html += '</div>';
+
+  // Show in overlay
+  let overlay = document.getElementById('mapOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'mapOverlay';
+    overlay.className = 'map-overlay';
+    overlay.innerHTML = `
+      <div class="map-modal">
+        <div class="map-modal-header">
+          <div><strong style="font-size:16px;">📍 Territory Map — ZIP Breakdown</strong><br><span style="font-size:12px;color:#5E6C84;">Click a ZIP to filter the table</span></div>
+          <button onclick="document.getElementById('mapOverlay').classList.remove('show')" style="background:none;border:none;font-size:24px;cursor:pointer;color:#5E6C84;">×</button>
+        </div>
+        <div class="map-modal-body" id="mapBody"></div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', (e) => { if(e.target===overlay) overlay.classList.remove('show'); });
+  }
+  document.getElementById('mapBody').innerHTML = html;
+  overlay.classList.add('show');
+}
+
+function filterByZipFromMap(zip) {
+  document.getElementById('mapOverlay').classList.remove('show');
+  document.getElementById('zipInput').value = zip;
+  addZipFilter();
+}
+
+function updateTerritoryBar() {
+  const data = state.data || [];
+  const hot = data.filter(d => d.intentScore >= 70).length;
+  const onCompetitor = data.filter(d => d.competitorPOS && !['','Unknown','N/A','Other','New Business'].includes(d.competitorPOS)).length;
+  const newBiz = data.filter(d => d.competitorPOS === 'New Business').length;
+  
+  document.getElementById('tHot').textContent = hot;
+  document.getElementById('tCompetitor').textContent = onCompetitor;
+  document.getElementById('tNew').textContent = newBiz;
+  
+  const meta = document.getElementById('territoryMeta');
+  const cities = [...new Set(data.map(d=>d.city).filter(Boolean))];
+  const zips = [...new Set(data.map(d=>d.zip).filter(Boolean))];
+  meta.textContent = `${data.length} leads · ${zips.length} ZIPs · ${cities.slice(0,4).join(', ')}${cities.length > 4 ? '...' : ''} · Updated ${new Date().toLocaleDateString()}`;
+}
+
+// Load live data then render
+loadLiveData().then(() => {
+  applyFilters();
+  updateTerritoryBar();
+});
+</script>
+</body>
+</html>
