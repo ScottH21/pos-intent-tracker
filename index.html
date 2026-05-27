@@ -281,6 +281,7 @@
         <label>Industry</label>
         <select class="filter-input" id="industryFilter" onchange="applyFilters()">
           <option value="">All Industries</option>
+          <option value="Chinese">Chinese / Asian Cuisine</option>
           <option value="Food and Drink">Food & Drink</option>
           <option value="Retail">Retail</option>
           <option value="Professional Services">Professional Services</option>
@@ -472,7 +473,11 @@ function applyFilters() {
 
   let f = state.data.filter(d => {
     if(state.zipFilters.length && !state.zipFilters.includes(d.zip)) return false;
-    if(industry && d.industry !== industry) return false;
+    if(industry === 'Chinese') {
+      const cn = (d.company||'').toLowerCase();
+      const chineseKw = ['chinese','china','wok','panda','dragon','dim sum','szechuan','sichuan','hunan','peking','mandarin','oriental','asian','noodle','dumpling','boba','tea house','ramen','pho','thai','sushi','korean','teriyaki','kung','chow','tofu','miso','udon','bibimbap'];
+      if(!chineseKw.some(kw => cn.includes(kw)) && !(d.signals||[]).some(s => s.toLowerCase().includes('asian') || s.toLowerCase().includes('chinese'))) return false;
+    } else if(industry && d.industry !== industry) return false;
     if(competitor && (d.competitorPOS||'') !== competitor) return false;
     if(d.intentScore < minScore) return false;
     if(search) {
